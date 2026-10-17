@@ -81,11 +81,12 @@ where `<base>` is `defaultBase` unless the user specifies another base. If the l
 cannot be resolved, try `origin/<base>`.
 
 Then fill the template in `assets/pr-template.md` — read it and follow it exactly: no extra
-sections, no reordering.
+sections, no reordering. The body never contains the title: no `**Title:**` line and no H1 heading;
+the title is only passed separately via `--title`.
 
 - **Title**: short imperative subject, 50 characters or less, format `[type]: short description`
   where type is one of `feat`, `fix`, `refactor`, `chore`, `docs`, `test`. Example:
-  `feat: add rate limiting to auth endpoints`.
+  `feat: add rate limiting to auth endpoints`. Never duplicate it in the body.
 - **Description**: 2–4 plain-English sentences on what the PR does and why, written for someone
   who has not seen the code. Avoid vague phrases like "various fixes".
 - **Changes**: action-verb bullets (Add, Fix, Remove, Refactor, Update, Extract, Move); one idea
@@ -228,3 +229,5 @@ Node.js using core modules only; the only external tool they shell out to is `gh
     for review.
 11. Never write the body to a file — no temp files, no files in the repo. Pass it to the scripts
     via stdin (`--body-stdin` with a quoted heredoc) or inline with `--body`.
+12. The PR body never includes the title — no `**Title:**` line, no H1 heading. The title is passed
+    only as the `--title` flag and shown as its own field in the review gate.
