@@ -1,5 +1,5 @@
 ---
-name: pr-comment-resolver
+name: resolve-pr-comments
 description:
     Analyze a batch of pull request review comments, write a detailed analysis
     markdown file, and draft status-first replies (Resolved / Done / Not required)
@@ -12,7 +12,7 @@ metadata:
     workflow: github
 ---
 
-# PR Comment Resolver Skill
+# Resolve PR Comments Skill
 
 Take a batch of pull request review comments through triage: judge each one, record the analysis, and prepare replies. The generated analysis markdown file is the artifact the user reviews and approves — no source file is edited and nothing is posted to GitHub until the user explicitly approves it. Approval of the analysis and approval to post replies are two separate gates.
 
@@ -124,7 +124,7 @@ Generated: <date>
 
 ## Scripts
 
-All paths below are relative to this skill's folder (`.agents/skills/pr-comment-resolver/`). The scripts are plain Node.js using only core modules — no dependencies — so they behave identically on Windows, Linux, and macOS when run as `node <path> ...`; the only external tool they shell out to is `gh`, which is itself cross-platform.
+All paths below are relative to this skill's folder (`.agents/skills/resolve-pr-comments/`). The scripts are plain Node.js using only core modules — no dependencies — so they behave identically on Windows, Linux, and macOS when run as `node <path> ...`; the only external tool they shell out to is `gh`, which is itself cross-platform.
 
 - `scripts/fetch-comments.mjs <pr-number-or-url>` — resolves `owner/repo`, then fetches inline review comments, review summaries, and general comments and prints them as one JSON object on stdout. Read-only; safe to run without approval.
 - `scripts/post-inline-reply.mjs <owner/repo> <pr-number> <comment-id> <body-file>` — posts a threaded reply to one inline review comment. Run only after explicit approval to post (step 10).
