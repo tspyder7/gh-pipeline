@@ -9,7 +9,7 @@
     "module": "src/index.ts",
     "scripts": {
         "build": "tsc --noEmit",
-        "lint": "eslint .",
+        "lint": "eslint --config eslint.config.ts --no-warn-ignored .",
         "format": "prettier --write \"**/*.+(js|ts)\"",
         "prepare": "husky",
         "test": "vitest --coverage"
@@ -45,7 +45,7 @@
     "lint-staged": {
         "*.{ts,tsx,mjs}": [
             "prettier --write",
-            "eslint --max-warnings 0 ."
+            "eslint --config eslint.config.ts  --no-warn-ignored --max-warnings 0 ."
         ]
     }
 }

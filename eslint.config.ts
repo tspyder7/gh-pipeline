@@ -7,7 +7,13 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default defineConfig([
     {
-        ignores: ['dist/**', 'node_modules/**', '.opencode/**', '.husky/**'],
+        ignores: [
+            'dist/**',
+            'node_modules/**',
+            '.opencode/**',
+            '.husky/**',
+            '.agents/skills/**',
+        ],
     },
     js.configs.recommended,
     ...tseslint.configs.recommended,
