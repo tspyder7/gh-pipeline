@@ -9,7 +9,7 @@
  *
  *   node scripts/create-pr.mjs --title <title> [--body <markdown> | --body-stdin] [--base <branch>]
  *
- * The branch must already be pushed to the remote; this script never pushes.
+ * The caller must ensure the branch is pushed to the remote first; this script never pushes.
  *
  * Write operation: run it only after the user has explicitly reviewed and
  * approved the title, body, and base branch.

@@ -9,8 +9,9 @@ Self-contained: the skill carries its own copy of the PR template
 ## What it does
 
 1. **Preconditions** — detects the repo, current branch, default base branch, and any open PR for
-   the branch via `scripts/find-pr.mjs`. Stops if the branch is the default branch or is not
-   pushed; it never pushes for you.
+   the branch via `scripts/find-pr.mjs`. Stops if the branch is the default branch or HEAD is
+   detached. If the branch is not pushed, pushes it immediately (`git push -u origin <branch>` or
+   `git push`) and proceeds; it never force-pushes.
 2. **Existing-PR gate** — if the branch already has an open PR, asks whether to update that PR or
    close it and create a new one. Never closes silently.
 3. **Draft the description** — fills its own copy of the PR template from `git log` / `git diff`

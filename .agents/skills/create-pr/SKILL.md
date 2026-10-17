@@ -2,7 +2,8 @@
 name: create-pr
 description:
     Create a GitHub pull request from the current branch, draft the title and body, suggest labels, present everything for review, and only after explicit confirmation create or update the PR and apply the labels. Detects an existing open PR for the branch and asks whether to update it or
-    close it and create a new one first. Never runs a write command before the user approves.
+    close it and create a new one first. Pushes the branch when it is not pushed yet, then proceeds.
+    Never creates, updates, closes, or labels a PR before the user approves.
     Trigger when the user says "create PR", "open a PR", "make a pull request", "raise a PR",
     "submit this branch as a PR", or otherwise asks to open a pull request for the current branch.
 compatibility: opencode
@@ -14,13 +15,15 @@ metadata:
 # Create PR Skill
 
 Take the current branch to a reviewed pull request. Draft the description, suggest labels, show the
-complete plan, and execute only what the user approved. The skill never commits, pushes,
-force-pushes, deletes branches, or reopens pull requests; it only creates, updates, closes (only
-when chosen at the existing-PR gate), and labels the PR.
+complete plan, and execute only what the user approved. The skill never commits, force-pushes,
+deletes branches, or reopens pull requests. When the current branch is not pushed yet, it performs
+one normal (non-force) push early in Step 1 and then proceeds; beyond that it only creates,
+updates, closes (only when chosen at the existing-PR gate), and labels the PR.
 
 ## Gates
 
-Nothing is written to GitHub before every required gate passes.
+No pull request is created, updated, closed, or labeled before every required gate passes. (The
+Step 1 push of the current branch, when needed, happens before the review gate by design.)
 
 1. **Existing-PR gate** — when the branch already has an open PR, ask whether to update it or to
    close it and create a new one. Never assume.
@@ -40,12 +43,18 @@ Nothing is written to GitHub before every required gate passes.
     It prints `{ repo, branch, defaultBase, openPullRequest }`. `openPullRequest` is `null` when
     none exists.
 
-2. Stop and report — do not proceed and do not fix it yourself — if any of these is true:
-    - the branch equals `defaultBase`;
-    - HEAD is detached (no branch);
-    - the branch has no upstream or has unpushed commits. Check with
-      `git rev-parse --abbrev-ref @{u}` and `git log @{u}..HEAD --oneline`. Tell the user to run
-      `git push -u origin <branch>` themselves; this skill never pushes.
+2. Stop and report — do not proceed — if the branch equals `defaultBase` or HEAD is detached (no
+   branch).
+
+3. Ensure the branch is pushed; push it now when needed:
+    - `git rev-parse --abbrev-ref @{u}` fails → no upstream: run `git push -u origin <branch>`.
+    - `git rev-parse --abbrev-ref @{u}` succeeds and `git log @{u}..HEAD --oneline` prints anything
+      → unpushed commits: run `git push`.
+    - Otherwise the branch is already pushed: do nothing.
+    - If there is no `origin` remote, stop and report.
+
+    If the push fails, stop and report — never force-push and never retry with `--force`. When the
+    push succeeds, continue to Step 2.
 
 ## Step 2 — Existing-PR gate
 
@@ -147,8 +156,8 @@ available):
 How to handle the answer:
 
 - **Create PR** → execute the planned actions exactly as shown (Step 6). Nothing beyond them.
-- **Don't Create PR** → stop. Run no write script. Confirm to the user that nothing was created,
-  updated, closed, or labeled.
+- **Don't Create PR** → stop. Run no write script. Confirm to the user that no PR was created,
+  updated, closed, or labeled; when Step 1 pushed the branch, note that the push already ran.
 - **Need Changes** → the user tells you what to change (title, body, labels, base branch, or the
   existing-PR mode). Apply the changes and present the updated review block again. Approval never
   carries over from a previous version.
@@ -179,6 +188,7 @@ something needs to change, go back to the review gate.
 
 Report:
 
+- The push result, when Step 1 pushed the branch.
 - The created / updated / closed PR number and URL.
 - The labels applied (or that none were suggested).
 - Any action that failed, exactly as it failed, and what remains true afterwards (for example
@@ -207,8 +217,9 @@ Node.js using core modules only; the only external tool they shell out to is `gh
 4. **Need Changes** loops back to the review gate; re-ask after every revision.
 5. Existing open PR → ask update vs close + create; never close silently; the close appears in the
    reviewed plan and runs only with the same approval.
-6. Never commit, push, force-push, delete branches, or reopen PRs. If the branch is not pushed,
-   stop and tell the user the exact `git push` command to run themselves.
+6. Never commit, force-push, delete branches, or reopen PRs. The only allowed push is a normal
+   (non-force) `git push` of the current branch, performed in Step 1 when the branch is not pushed
+   yet. Never push other branches or tags, and never retry a failed push with `--force`.
 7. Never remove labels and never invent labels. Only labels present in `fetch-labels.mjs` output
    may be suggested; only user-approved labels are applied.
 8. The review block must show the full body and every command that will run. No hidden actions.
