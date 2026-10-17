@@ -28,6 +28,7 @@ Key behaviors:
 - **Description**: 2–4 plain-English sentences written for someone who hasn't seen the code.
 - **Changes**: action-verb bullets (Add, Fix, Remove, Refactor) — as many as needed, no mechanical noise.
 - **Related Issue**: `Closes #<number>` to auto-close on merge; Jira/Linear tickets accepted.
+- **Labels**: fetched live from the target repository (`gh label list`) and suggested as the full list of all applicable labels — never hardcoded, never forced to a single label.
 - Ambiguous input: makes a reasonable attempt first, then asks targeted questions — never interrogates before trying.
 - Large diffs (>300 lines): summarized at a high level, not file-by-file.
 - Output is delivered in a copyable code block, with assumptions called out underneath.
@@ -72,6 +73,14 @@ request counts per IP and returns a proper 429 response when limits are exceeded
 ## Related Issue
 
 Closes #
+```
+
+## Scripts
+
+Node.js core modules only — no dependencies; the only external tool is `gh`. Paths are relative to this skill's folder.
+
+```
+node scripts/fetch-labels.mjs [owner/repo]   # read-only; defaults to the current repository
 ```
 
 ## See also

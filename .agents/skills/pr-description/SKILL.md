@@ -88,25 +88,36 @@ If no issue is known, leave it blank and note it to the user.
 
 ## Suggested labels
 
-After the description, suggest labels for the PR. The complete list of labels supported by this
-repo lives in `assets/labels.md` — read it and pick only from those.
+After the description, suggest labels for the PR. Fetch the labels configured on the target
+repository first — they vary project to project, so never work from a fixed list:
+
+```
+node scripts/fetch-labels.mjs [owner/repo]
+```
+
+With no argument, the script resolves `owner/repo` from the current repository. It prints one JSON
+object: `{ repo, labels: [{ name, description, color }] }`. Pick from that list only. If the labels
+can't be fetched, ask the user for the repository or its label list instead of guessing.
 
 Rules:
 
-- **Type**: pick exactly one `type:*` label that best matches the dominant change in the PR
-  (feature → `type:feature`, fix → `type:bug` or `type:hotfix`, etc.). If it's a
-  dependency-only change use `type:dependencies`; docs-only → `type:docs`;
-  tests-only → `type:test`; CI-only → `type:ci`.
+- **Type**: suggest **every** `type:*` label that genuinely applies — often more than one. For
+  example: a feature PR that also adds tests → `type:feature`, `type:test`; a PR that adds a
+  capability and bumps dependencies → `type:feature`, `type:dependencies`. Never force the
+  suggestion down to a single label, and never pad the list with labels that don't apply.
+- **Other label families**: judge every remaining fetched label by its name and description and
+  include the ones that apply (for example `scope:*` or `area:*` labels).
 - **Status / Priority**: do NOT suggest `status:*` or `priority:*` labels unless the user
-  explicitly asks for them. If the user asks, pick one of each per the table in
-  `assets/labels.md` and ask them to confirm the values.
-- Never invent a label that isn't in `assets/labels.md`.
+  explicitly asks for them. If the user asks, list every applicable one from the fetched set and
+  ask them to confirm the values.
+- Never invent a label that isn't in the fetched list. If no fetched label applies, say so
+  explicitly instead of inventing one.
 
-Present the suggested labels as a single line, e.g.:
+Present the suggested labels as one comma-separated line listing all applicable labels, e.g.:
 
-`Labels: type:feature`
+`Labels: type:feature, type:test`
 
-Ask the user if the type label looks right; adjust on request.
+Ask the user if the labels look right; adjust on request.
 
 ---
 
@@ -158,7 +169,7 @@ request counts per IP and returns a proper 429 response when limits are exceeded
 Closes #
 ```
 
-**Suggested labels:** `type:feature`
+**Suggested labels:** `type:feature, type:dependencies`
 
 ---
 
