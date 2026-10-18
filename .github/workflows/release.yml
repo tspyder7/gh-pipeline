@@ -1,0 +1,125 @@
+# Creates an annotated version tag and a GitHub release for the selected branch.
+# The release logic lives in .github/scripts/*.mjs.
+#
+# Setup (one-time, in repository settings):
+#   - Create an environment named "production" and add required reviewers.
+#     The job waits for their approval before any step runs.
+#   - This workflow must exist on the default branch to appear in the
+#     "Run workflow" UI. The `branch` input only selects the ref to tag.
+#
+# Commit formats (mixed in one range is supported, detection is per commit):
+#   - Conventional Commits:   "feat(scope)!: message"
+#   - Story prefixed:         "[PROJ-42] feat: message"
+#   - Story prefixed, no type:"[PROJ-42] message"
+#   - Plain:                  "message"
+#   Bullet lists in the commit body ("- detail") become nested release note
+#   entries and story commits are grouped under a "#### STORY" heading.
+#   Notes end with the commit SHA and the UTC release timestamp.
+#   A "BREAKING CHANGE:" or "BREAKING-CHANGE:" footer also marks a commit
+#   as breaking; it may be written as a bullet as well. Any type prefix
+#   included.
+#
+# Versioning:
+#   The next version is derived from the latest reachable tag and the
+#   commits since then:
+#     - "!" after the type/scope, or a "BREAKING CHANGE" footer -> major
+#     - "feat" -> minor
+#     - anything else -> patch
+#   When no previous tag exists, the first release is v1.0.0 and afterwards
+#   the bump rules above apply.
+#
+# Note: releases created with the default GITHUB_TOKEN do not trigger
+# "release" events in other workflows. Swap in a PAT or GitHub App token if
+# downstream automation must react to the release.
+
+name: Release
+
+run-name: "Create release from ${{ inputs.branch }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch or ref the tag is created from
+        required: true
+        default: main
+        type: string
+      bump:
+        description: Version bump (auto derives it from conventional commits)
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - major
+          - minor
+          - patch
+      tag_prefix:
+        description: Prefix for the version tag
+        required: true
+        default: v
+        type: string
+      dry_run:
+        description: Preview the tag and release without creating them
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Approval from the "production" environment is required before any step runs.
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Compute next version
+        id: version
+        env:
+          INPUT_BRANCH: ${{ inputs.branch }}
+          INPUT_TAG_PREFIX: ${{ inputs.tag_prefix }}
+          INPUT_BUMP: ${{ inputs.bump }}
+        run: node .github/scripts/compute-version.mjs
+
+      - name: Generate release notes
+        id: changelog
+        env:
+          PREV_TAG: ${{ steps.version.outputs.prev_tag }}
+          NEXT_TAG: ${{ steps.version.outputs.next_tag }}
+        run: node .github/scripts/generate-release-notes.mjs
+
+      - name: Create and push tag
+        if: ${{ !inputs.dry_run }}
+        env:
+          NEXT_TAG: ${{ steps.version.outputs.next_tag }}
+        run: node .github/scripts/create-tag.mjs
+
+      - name: Create GitHub release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEXT_TAG: ${{ steps.version.outputs.next_tag }}
+          NOTES_FILE: ${{ steps.changelog.outputs.notes_file }}
+        run: node .github/scripts/create-release.mjs
+
+      - name: Dry run summary
+        if: ${{ inputs.dry_run }}
+        env:
+          PREV_TAG: ${{ steps.version.outputs.prev_tag }}
+          NEXT_TAG: ${{ steps.version.outputs.next_tag }}
+          BUMP: ${{ steps.version.outputs.bump }}
+        run: node .github/scripts/dry-run-summary.mjs
