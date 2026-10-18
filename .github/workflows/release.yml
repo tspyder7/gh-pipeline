@@ -14,7 +14,7 @@
 #   - Plain:                  "message"
 #   Bullet lists in the commit body ("- detail") become nested release note
 #   entries and story commits are grouped under a "#### STORY" heading.
-#   Notes end with the UTC release timestamp.
+#   Notes end with the commit SHA and the UTC release timestamp.
 #   A "BREAKING CHANGE:" or "BREAKING-CHANGE:" footer also marks a commit
 #   as breaking; it may be written as a bullet as well. Any type prefix
 #   included.

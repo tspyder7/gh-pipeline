@@ -284,6 +284,7 @@ export const renderReleaseNotes = ({
     prevTag = '',
     nextTag,
     commits,
+    commitSha = '',
     releasedAt = new Date(),
 }) => {
     const sections = groupCommits(commits);
@@ -300,10 +301,13 @@ export const renderReleaseNotes = ({
         ? `**Full Changelog**: [\`${prevTag}...${nextTag}\`](https://github.com/${repo}/compare/${prevTag}...${nextTag})`
         : `**Full Changelog**: [\`${nextTag}\`](https://github.com/${repo}/commits/${nextTag})`;
 
-    lines.push(
-        changelog,
-        `**Released (UTC)**: \`${formatUtcTimestamp(releasedAt)}\``,
-    );
+    lines.push(changelog);
+
+    if (commitSha) {
+        lines.push(`**Commit SHA**: \`${commitSha}\``);
+    }
+
+    lines.push(`**Released (UTC)**: \`${formatUtcTimestamp(releasedAt)}\``);
 
     return `${lines.join('\n')}\n`;
 };

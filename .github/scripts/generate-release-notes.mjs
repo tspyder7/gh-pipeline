@@ -37,12 +37,21 @@ if (!repo || !nextTag) {
 
 const range = prevTag ? `${prevTag}..HEAD` : 'HEAD';
 
+// SHA of the commit the tag is created from, so consumers can pin it.
+const commitSha = git('rev-parse', 'HEAD');
+
 // Both conventional and "[STORY-1] type:" commits are parsed by the lib.
 const commits = parseCommitLog(
     git('log', '--no-merges', `--format=${LOG_FORMAT}`, range),
 );
 
-const notes = renderReleaseNotes({ repo, prevTag, nextTag, commits });
+const notes = renderReleaseNotes({
+    repo,
+    prevTag,
+    nextTag,
+    commits,
+    commitSha,
+});
 const notesFile = join(process.env.RUNNER_TEMP ?? tmpdir(), 'release-notes.md');
 
 writeFileSync(notesFile, notes);
