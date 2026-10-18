@@ -378,6 +378,7 @@ describe('commit-format', () => {
                 prevTag: 'v1.0.0',
                 nextTag: 'v1.1.0',
                 commits,
+                commitSha: 'abc1234567890abc1234567890abc1234567890a',
                 releasedAt: '2026-10-18T19:43:23.123Z',
             });
 
@@ -398,6 +399,9 @@ describe('commit-format', () => {
             );
             expect(notes).toContain(
                 '**Released (UTC)**: `2026-10-18T19:43:23Z`',
+            );
+            expect(notes).toContain(
+                '**Commit SHA**: `abc1234567890abc1234567890abc1234567890a`',
             );
         });
 

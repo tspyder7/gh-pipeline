@@ -227,6 +227,10 @@ describe('release scripts', () => {
             expect(notes).toMatch(
                 /\*\*Released \(UTC\)\*\*: `\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z`/,
             );
+
+            const headSha = runGit(repo, ['rev-parse', 'HEAD']);
+
+            expect(notes).toContain(`**Commit SHA**: \`${headSha}\``);
         });
 
         it('fails when required environment variables are missing', () => {

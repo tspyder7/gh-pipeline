@@ -41,6 +41,7 @@ export interface ReleaseNotesOptions {
     prevTag?: string;
     nextTag: string;
     commits: ParsedCommit[];
+    commitSha?: string;
     releasedAt?: string | Date;
 }
 
