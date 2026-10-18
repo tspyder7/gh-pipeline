@@ -13,6 +13,7 @@ export default defineConfig([
             '.opencode/**',
             '.husky/**',
             '.agents/skills/**',
+            '.github/scripts/**',
         ],
     },
     js.configs.recommended,
